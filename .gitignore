@@ -1,0 +1,15 @@
+# Keil MDK build outputs
+/Objects/
+/Listings/
+/OUT/
+
+# Keil user-specific workspace settings
+*.uvguix
+*.uvguix.*
+
+# Common local/generated files
+*.bak
+*.tmp
+*.log
+Thumbs.db
+Desktop.ini

@@ -1,0 +1,1196 @@
+/*!
+    \file    change log.txt
+    \brief   change log for GD32F30x firmware
+
+    \version 2026-2-6, V3.0.3, firmware for GD32F30x
+*/
+
+
+/*
+    Copyright (c) 2025, GigaDevice Semiconductor Inc.
+
+    Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+    2. Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation 
+       and/or other materials provided with the distribution.
+    3. Neither the name of the copyright holder nor the names of its contributors 
+       may be used to endorse or promote products derived from this software without 
+       specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
+OF SUCH DAMAGE.
+*/
+
+******************* V3.0.3 2026-02-04 ******************************************************************************************
+______________________Common______________________________________________________________________________________________
+V3.0.3: add EB project
+
+GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_sdio.c
+fix reason:
+before send command  need disable CSM
+V3.0.2:
+    uint32_t cmd_config = 0U;
+    /* reset the command index, command argument and response type */
+    SDIO_CMDAGMT &= ~SDIO_CMDAGMT_CMDAGMT;
+V3.0.3:
+    uint32_t cmd_config = 0U;
+
+    /* disable the CSM */
+    SDIO_CMDCTL &= ~SDIO_CMDCTL_CSMEN;
+    /* reset the command index, command argument and response type */
+    SDIO_CMDAGMT &= ~SDIO_CMDAGMT_CMDAGMT;
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Utilities/gd32f303e_eval.c
+fix reason:
+Modify the printing serial port of the development board
+V3.0.2:
+    usart_data_transmit(EVAL_COM0, (uint8_t) ch);
+    while(RESET == usart_flag_get(EVAL_COM0, USART_FLAG_TBE));	
+V3.0.3:
+    usart_data_transmit(EVAL_COM1, (uint8_t) ch);
+    while(RESET == usart_flag_get(EVAL_COM1, USART_FLAG_TBE));
+_______________________________________________________________________________________________________________________
+
+________________________ADC_______________________________________________________________________________________
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_adc.c
+fix reason:
+Modify the description of the corresponding channel of the ADC
+V3.0.2:
+    switch(adc_channel_group){
+    case ADC_REGULAR_CHANNEL:
+...
+	isq &= ~((uint32_t)(ADC_ISQ_ISQN << (5U * ((3 + rank) - inserted_length))));
+    isq |= ((uint32_t)adc_channel << (5U * ((3 + rank) - inserted_length)));
+...
+void adc_external_trigger_config(uint32_t adc_periph, uint8_t adc_channel_group, ControlStatus newvalue)
+{
+    if(newvalue){
+        if(0U != (adc_channel_group & ADC_REGULAR_CHANNEL)){
+            ADC_CTL1(adc_periph) |= ADC_CTL1_ETERC;
+        }
+        if(0U != (adc_channel_group & ADC_INSERTED_CHANNEL)){
+            ADC_CTL1(adc_periph) |= ADC_CTL1_ETEIC;
+        }        
+    }else{
+        if(0U != (adc_channel_group & ADC_REGULAR_CHANNEL)){
+            ADC_CTL1(adc_periph) &= ~ADC_CTL1_ETERC;
+        }
+        if(0U != (adc_channel_group & ADC_INSERTED_CHANNEL)){
+            ADC_CTL1(adc_periph) &= ~ADC_CTL1_ETEIC;
+        } 
+...
+    if(0U != (adc_channel_group & ADC_REGULAR_CHANNEL)){		
+...
+    if(0U != (adc_channel_group & ADC_INSERTED_CHANNEL)){
+        ADC_CTL1(adc_periph) |= ADC_CTL1_SWICST;
+    }	
+...
+uint16_t adc_regular_data_read(uint32_t adc_periph)
+...
+void adc_watchdog_group_channel_enable(uint32_t adc_periph, uint8_t adc_channel_group)
+{
+    ADC_CTL0(adc_periph) &= (uint32_t)~(ADC_CTL0_RWDEN | ADC_CTL0_IWDEN | ADC_CTL0_WDSC);
+    /* select the group */
+    switch(adc_channel_group){
+    case ADC_REGULAR_CHANNEL:
+...
+    case ADC_REGULAR_INSERTED_CHANNEL:
+	
+V3.0.3:
+    switch(adc_sequence){
+    case ADC_ROUTINE_CHANNEL:
+...
+	isq &= ~((uint32_t)(ADC_ISQ_ISQN << (5U * ((3U + rank) - inserted_length))));
+    isq |= ((uint32_t)adc_channel << (5U * ((3U + rank) - inserted_length)));
+...
+void adc_external_trigger_config(uint32_t adc_periph, uint8_t adc_sequence, ControlStatus newvalue)
+{
+    if(newvalue){
+        if(0U != (adc_sequence & ADC_ROUTINE_CHANNEL)){
+            ADC_CTL1(adc_periph) |= ADC_CTL1_ETERC;
+        }
+        if(0U != (adc_sequence & ADC_INSERTED_CHANNEL)){
+            ADC_CTL1(adc_periph) |= ADC_CTL1_ETEIC;
+        }        
+    }else{
+        if(0U != (adc_sequence & ADC_ROUTINE_CHANNEL)){
+            ADC_CTL1(adc_periph) &= ~ADC_CTL1_ETERC;
+        }
+        if(0U != (adc_sequence & ADC_INSERTED_CHANNEL)){
+            ADC_CTL1(adc_periph) &= ~ADC_CTL1_ETEIC;
+        }   
+...
+    if(0U != (adc_sequence & ADC_ROUTINE_CHANNEL)){	
+...
+    if(0U != (adc_sequence & ADC_INSERTED_CHANNEL)){
+        ADC_CTL1(adc_periph) |= ADC_CTL1_SWICST;
+    }
+...
+uint16_t adc_routine_data_read(uint32_t adc_periph)
+...
+void adc_watchdog_sequence_channel_enable(uint32_t adc_periph, uint8_t adc_sequence)
+{
+    ADC_CTL0(adc_periph) &= (uint32_t)~(ADC_CTL0_RWDEN | ADC_CTL0_IWDEN | ADC_CTL0_WDSC);
+    /* select the sequence */
+    switch(adc_sequence){
+    case ADC_ROUTINE_CHANNEL:
+...
+    case ADC_ROUTINE_INSERTED_CHANNEL:
+	
+	
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_adc.h
+fix reason:
+Modify the description of the corresponding channel of the ADC
+V3.0.2:
+#define ADC_MODE_FREE                                        CTL0_SYNCM(0)           /*!< all the ADCs work independently */
+#define ADC_DAUL_REGULAL_PARALLEL_INSERTED_PARALLEL          CTL0_SYNCM(1)           /*!< ADC0 and ADC1 work in combined regular parallel + inserted parallel mode */
+#define ADC_DAUL_REGULAL_PARALLEL_INSERTED_ROTATION          CTL0_SYNCM(2)           /*!< ADC0 and ADC1 work in combined regular parallel + trigger rotation mode */
+#define ADC_DAUL_INSERTED_PARALLEL_REGULAL_FOLLOWUP_FAST     CTL0_SYNCM(3)           /*!< ADC0 and ADC1 work in combined inserted parallel + follow-up fast mode */
+#define ADC_DAUL_INSERTED_PARALLEL_REGULAL_FOLLOWUP_SLOW     CTL0_SYNCM(4)           /*!< ADC0 and ADC1 work in combined inserted parallel + follow-up slow mode */
+#define ADC_DAUL_INSERTED_PARALLEL                           CTL0_SYNCM(5)           /*!< ADC0 and ADC1 work in inserted parallel mode only */
+#define ADC_DAUL_REGULAL_PARALLEL                            CTL0_SYNCM(6)           /*!< ADC0 and ADC1 work in regular parallel mode only */
+#define ADC_DAUL_REGULAL_FOLLOWUP_FAST                       CTL0_SYNCM(7)           /*!< ADC0 and ADC1 work in follow-up fast mode only */
+#define ADC_DAUL_REGULAL_FOLLOWUP_SLOW                       CTL0_SYNCM(8)           /*!< ADC0 and ADC1 work in follow-up slow mode only */
+#define ADC_DAUL_INSERTED_TRRIGGER_ROTATION                  CTL0_SYNCM(9)           /*!< ADC0 and ADC1 work in trigger rotation mode only */
+...
+#define ADC0_1_EXTTRIG_REGULAR_T0_CH0    CTL1_ETSRC(0)                               /*!< timer 0 CC0 event select */
+#define ADC0_1_EXTTRIG_REGULAR_T0_CH1    CTL1_ETSRC(1)                               /*!< timer 0 CC1 event select */
+#define ADC0_1_EXTTRIG_REGULAR_T0_CH2    CTL1_ETSRC(2)                               /*!< timer 0 CC2 event select */
+#define ADC0_1_EXTTRIG_REGULAR_T1_CH1    CTL1_ETSRC(3)                               /*!< timer 1 CC1 event select */
+#define ADC0_1_EXTTRIG_REGULAR_T2_TRGO   CTL1_ETSRC(4)                               /*!< timer 2 TRGO event select */
+#define ADC0_1_EXTTRIG_REGULAR_T3_CH3    CTL1_ETSRC(5)                               /*!< timer 3 CC3 event select */
+#define ADC0_1_EXTTRIG_REGULAR_T7_TRGO   CTL1_ETSRC(6)                               /*!< timer 7 TRGO event select */
+#define ADC0_1_EXTTRIG_REGULAR_EXTI_11   CTL1_ETSRC(6)                               /*!< external interrupt line 11 */
+#define ADC0_1_2_EXTTRIG_REGULAR_NONE    CTL1_ETSRC(7)                               /*!< software trigger */
+
+#define ADC2_EXTTRIG_REGULAR_T2_CH0      CTL1_ETSRC(0)                               /*!< timer 2 CC0 event select */
+#define ADC2_EXTTRIG_REGULAR_T1_CH2      CTL1_ETSRC(1)                               /*!< timer 1 CC2 event select */
+#define ADC2_EXTTRIG_REGULAR_T0_CH2      CTL1_ETSRC(2)                               /*!< timer 0 CC2 event select */
+#define ADC2_EXTTRIG_REGULAR_T7_CH0      CTL1_ETSRC(3)                               /*!< timer 7 CC0 event select */
+#define ADC2_EXTTRIG_REGULAR_T7_TRGO     CTL1_ETSRC(4)                               /*!< timer 7 TRGO event select */
+#define ADC2_EXTTRIG_REGULAR_T4_CH0      CTL1_ETSRC(5)                               /*!< timer 4 CC0 event select */
+#define ADC2_EXTTRIG_REGULAR_T4_CH2      CTL1_ETSRC(6)   
+...
+/* ADC channel group definitions */
+#define ADC_REGULAR_CHANNEL              ((uint8_t)0x01U)                            /*!< adc regular channel group */
+#define ADC_INSERTED_CHANNEL             ((uint8_t)0x02U)                            /*!< adc inserted channel group */
+#define ADC_REGULAR_INSERTED_CHANNEL     ((uint8_t)0x03U)                            /*!< both regular and inserted channel group */
+...
+void adc_discontinuous_mode_config(uint32_t adc_periph , uint8_t adc_channel_group , uint8_t length);
+...
+/* configure the length of regular channel group or inserted channel group */
+void adc_channel_length_config(uint32_t adc_periph , uint8_t adc_channel_group , uint32_t length);
+/* configure ADC regular channel */
+void adc_regular_channel_config(uint32_t adc_periph , uint8_t rank , uint8_t adc_channel , uint32_t sample_time);
+...
+/* enable ADC external trigger */
+void adc_external_trigger_config(uint32_t adc_periph, uint8_t adc_channel_group, ControlStatus newvalue);
+/* configure ADC external trigger source */
+void adc_external_trigger_source_config(uint32_t adc_periph, uint8_t adc_channel_group, uint32_t external_trigger_source);
+/* enable ADC software trigger */
+void adc_software_trigger_enable(uint32_t adc_periph , uint8_t adc_channel_group);
+
+/* read ADC regular group data register */
+uint16_t adc_regular_data_read(uint32_t adc_periph);
+/* read ADC inserted group data register */
+uint16_t adc_inserted_data_read(uint32_t adc_periph , uint8_t inserted_channel);
+...	
+/* configure ADC analog watchdog group channel */
+void adc_watchdog_group_channel_enable(uint32_t adc_periph, uint8_t adc_channel_group);
+
+V3.0.3:
+#define ADC_DAUL_ROUTINE_PARALLEL_INSERTED_PARALLEL          CTL0_SYNCM(1)           /*!< ADC0 and ADC1 work in combined routine parallel + inserted parallel mode */
+#define ADC_DAUL_ROUTINE_PARALLEL_INSERTED_ROTATION          CTL0_SYNCM(2)           /*!< ADC0 and ADC1 work in combined routine parallel + trigger rotation mode */
+#define ADC_DAUL_INSERTED_PARALLEL_ROUTINE_FOLLOWUP_FAST     CTL0_SYNCM(3)           /*!< ADC0 and ADC1 work in combined inserted parallel + follow-up fast mode */
+#define ADC_DAUL_INSERTED_PARALLEL_ROUTINE_FOLLOWUP_SLOW     CTL0_SYNCM(4)           /*!< ADC0 and ADC1 work in combined inserted parallel + follow-up slow mode */
+#define ADC_DAUL_INSERTED_PARALLEL                           CTL0_SYNCM(5)           /*!< ADC0 and ADC1 work in inserted parallel mode only */
+#define ADC_DAUL_ROUTINE_PARALLEL                            CTL0_SYNCM(6)           /*!< ADC0 and ADC1 work in routine parallel mode only */
+#define ADC_DAUL_ROUTINE_FOLLOWUP_FAST                       CTL0_SYNCM(7)           /*!< ADC0 and ADC1 work in follow-up fast mode only */
+#define ADC_DAUL_ROUTINE_FOLLOWUP_SLOW                       CTL0_SYNCM(8)           /*!< ADC0 and ADC1 work in follow-up slow mode only */
+#define ADC_DAUL_INSERTED_TRIGGER_ROTATION                   CTL0_SYNCM(9)           /*!< ADC0 and ADC1 work in trigger rotation mode only */
+...
+#define ADC0_1_EXTTRIG_ROUTINE_T0_CH0    CTL1_ETSRC(0)                               /*!< timer 0 CC0 event select */
+#define ADC0_1_EXTTRIG_ROUTINE_T0_CH1    CTL1_ETSRC(1)                               /*!< timer 0 CC1 event select */
+#define ADC0_1_EXTTRIG_ROUTINE_T0_CH2    CTL1_ETSRC(2)                               /*!< timer 0 CC2 event select */
+#define ADC0_1_EXTTRIG_ROUTINE_T1_CH1    CTL1_ETSRC(3)                               /*!< timer 1 CC1 event select */
+#define ADC0_1_EXTTRIG_ROUTINE_T2_TRGO   CTL1_ETSRC(4)                               /*!< timer 2 TRGO event select */
+#define ADC0_1_EXTTRIG_ROUTINE_T3_CH3    CTL1_ETSRC(5)                               /*!< timer 3 CC3 event select */
+#define ADC0_1_EXTTRIG_ROUTINE_T7_TRGO   CTL1_ETSRC(6)                               /*!< timer 7 TRGO event select */
+#define ADC0_1_EXTTRIG_ROUTINE_EXTI_11   CTL1_ETSRC(6)                               /*!< external interrupt line 11 */
+#define ADC0_1_2_EXTTRIG_ROUTINE_NONE    CTL1_ETSRC(7)                               /*!< software trigger */
+
+#define ADC2_EXTTRIG_ROUTINE_T2_CH0      CTL1_ETSRC(0)                               /*!< timer 2 CC0 event select */
+#define ADC2_EXTTRIG_ROUTINE_T1_CH2      CTL1_ETSRC(1)                               /*!< timer 1 CC2 event select */
+#define ADC2_EXTTRIG_ROUTINE_T0_CH2      CTL1_ETSRC(2)                               /*!< timer 0 CC2 event select */
+#define ADC2_EXTTRIG_ROUTINE_T7_CH0      CTL1_ETSRC(3)                               /*!< timer 7 CC0 event select */
+#define ADC2_EXTTRIG_ROUTINE_T7_TRGO     CTL1_ETSRC(4)                               /*!< timer 7 TRGO event select */
+#define ADC2_EXTTRIG_ROUTINE_T4_CH0      CTL1_ETSRC(5)                               /*!< timer 4 CC0 event select */
+#define ADC2_EXTTRIG_ROUTINE_T4_CH2      CTL1_ETSRC(6)                               /*!< timer 4 CC2 event select */
+...
+/* ADC channel sequence definitions */
+#define ADC_ROUTINE_CHANNEL              ((uint8_t)0x01U)                            /*!< adc routine sequence */
+#define ADC_INSERTED_CHANNEL             ((uint8_t)0x02U)                            /*!< adc inserted sequence */
+#define ADC_ROUTINE_INSERTED_CHANNEL     ((uint8_t)0x03U)                            /*!< both routine and inserted sequence */
+#define ADC_CHANNEL_DISCON_DISABLE       ((uint8_t)0x04U)                            /*!< disable discontinuous mode of routine & inserted sequence */
+...
+void adc_discontinuous_mode_config(uint32_t adc_periph , uint8_t adc_sequence , uint8_t length);
+...
+/* configure the length of routine sequence or inserted sequence */
+void adc_channel_length_config(uint32_t adc_periph , uint8_t adc_sequence , uint32_t length);
+/* configure ADC routine channel */
+void adc_routine_channel_config(uint32_t adc_periph , uint8_t rank , uint8_t adc_channel , uint32_t sample_time);
+...
+/* enable ADC external trigger */
+void adc_external_trigger_config(uint32_t adc_periph, uint8_t adc_sequence, ControlStatus newvalue);
+/* configure ADC external trigger source */
+void adc_external_trigger_source_config(uint32_t adc_periph, uint8_t adc_sequence, uint32_t external_trigger_source);
+/* enable ADC software trigger */
+void adc_software_trigger_enable(uint32_t adc_periph , uint8_t adc_sequence);
+...
+/* read ADC routine sequence data register */
+uint16_t adc_routine_data_read(uint32_t adc_periph);
+/* read ADC inserted sequence data register */
+uint16_t adc_inserted_data_read(uint32_t adc_periph , uint8_t inserted_channel);
+...
+/* configure ADC analog watchdog sequence channel */
+void adc_watchdog_sequence_channel_enable(uint32_t adc_periph, uint8_t adc_sequence);
+
+
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_adc.c
+fix reason:
+Modify the description of the corresponding channel of the ADC
+V3.0.2:
+
+
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC
+fix reason:
+Module routine modification
+rewrite:
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC0_temperature_Vref
+bug fix:
+regular -> routine
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC1_analog_watchdog
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC1_oversample_shift
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC1_resolution
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC0_ADC1_regular_parallel
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC0_regular_channel_discontinuous_mode
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC0_regular_channel_with_DMA
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC0_software_trigger_regular_channel_polling
+delete:
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC0_timer_trigger_injected_channel
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC0_software_trigger_regular_channel_polling
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC0_ADC1_routine_parallel/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC0_routine_channel_discontinuous_mode/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC0_routine_channel_with_DMA/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC0_temperature_Vref/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC1_analog_watchdog/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC1_oversample_shift/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ADC/ADC1_resolution/main.c
+fix reason:
+Fix the issue of redirection and duplicate definition of the serial port print function
+V3.0.2:
+/* retarget the C library printf function to the USART */
+int fputc(int ch, FILE *f)
+{
+    usart_data_transmit(EVAL_COM0, (uint8_t)ch);
+    while(RESET == usart_flag_get(EVAL_COM0, USART_FLAG_TBE));
+    return ch;
+}
+V3.0.3:
+none
+
+
+
+
+__________________________________________________________________________________________________________________________
+
+______________________TIMER_____________________________________________________________________________________________
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/TIMER/TIMER2_inputcapture/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/TIMER/TIMER2_pwminputcapture/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/TIMER/TIMERs_cascadesynchro/main.c
+fix reason:
+Fix the issue of redirection and duplicate definition of the serial port print function
+V3.0.2:
+/* retarget the C library printf function to the USART */
+int fputc(int ch, FILE *f)
+{
+    usart_data_transmit(EVAL_COM0, (uint8_t)ch);
+    while(RESET == usart_flag_get(EVAL_COM0, USART_FLAG_TBE));
+    return ch;
+}
+V3.0.3:
+none
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_timer.c
+fix reason:
+Modify the function interface that returns a value to have only one exit
+
+
+__________________________________________________________________________________________________________________________
+
+______________________USART_____________________________________________________________________________________________
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USART/Half_duplex_transmitter&receiver/main.c
+fix reason:
+Solve the problems under the EB OS2 optimization level
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_usart.c
+fix reason:
+Modify the function interface that returns a value to have only one exit
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USART/DMA_transmitter&receiver/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USART/DMA_transmitter&receiver_interrupt/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USART/IDLE_receive_interrupt/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USART/Printf/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USART/Receiver_timeout/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USART/Transmitter&receiver_interrupt/main.c
+fix reason:
+Fix the issue of redirection and duplicate definition of the serial port print function
+V3.0.2:
+/* retarget the C library printf function to the USART */
+int fputc(int ch, FILE *f)
+{
+    usart_data_transmit(EVAL_COM0, (uint8_t)ch);
+    while(RESET == usart_flag_get(EVAL_COM0, USART_FLAG_TBE));
+    return ch;
+}
+V3.0.3:
+none
+
+
+__________________________________________________________________________________________________________________________
+______________________DBG_____________________________________________________________________________________________
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/DBG/DBG_timer1_stop/main.c
+fix reason:
+Fix bugs caused by GCC optimizations on example
+Change the following code to the top of the file instead of inside the function:
+    timer_parameter_struct timer_initpara;
+    timer_oc_parameter_struct timer_ocintpara;
+
+
+__________________________________________________________________________________________________________________________
+
+______________________GPIO_____________________________________________________________________________________________
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_gpio.c
+fix reason:
+modify ADC AFIO macro according to ADC 
+V3.0.2:
+      \arg        GPIO_ADC0_ETRGINS_REMAP: ADC0 external trigger inserted conversion remapping(only for GD32F30X_HD devices and GD32F30X_XD devices)
+      \arg        GPIO_ADC0_ETRGREG_REMAP: ADC0 external trigger regular conversion remapping(only for GD32F30X_HD devices and GD32F30X_XD devices)
+      \arg        GPIO_ADC1_ETRGINS_REMAP: ADC1 external trigger inserted conversion remapping(only for GD32F30X_HD devices and GD32F30X_XD devices)
+      \arg        GPIO_ADC1_ETRGREG_REMAP: ADC1 external trigger regular conversion remapping(only for GD32F30X_HD devices and GD32F30X_XD devices)
+ 
+V3.0.3:
+      \arg        GPIO_ADC0_ETRGINS_REMAP: ADC0 external trigger inserted conversion remapping(only for GD32F30X_HD devices and GD32F30X_XD devices)
+      \arg        GPIO_ADC0_ETRGROU_REMAP: ADC0 external trigger routine conversion remapping(only for GD32F30X_HD devices and GD32F30X_XD devices)
+      \arg        GPIO_ADC1_ETRGINS_REMAP: ADC1 external trigger inserted conversion remapping(only for GD32F30X_HD devices and GD32F30X_XD devices)
+      \arg        GPIO_ADC1_ETRGROU_REMAP: ADC1 external trigger routine conversion remapping(only for GD32F30X_HD devices and GD32F30X_XD devices)
+ 
+ 
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_gpio.h
+fix reason:
+modify ADC AFIO macro according to ADC 
+V3.0.2:
+#define AFIO_PCF0_ADC0_ETRGINS_REMAP     BIT(17)             /*!< ADC 0 external trigger inserted conversion remapping */
+#define AFIO_PCF0_ADC0_ETRGREG_REMAP     BIT(18)             /*!< ADC 0 external trigger regular conversion remapping */
+#define AFIO_PCF0_ADC1_ETRGINS_REMAP     BIT(19)             /*!< ADC 1 external trigger inserted conversion remapping */
+#define AFIO_PCF0_ADC1_ETRGREG_REMAP     BIT(20)             /*!< ADC 1 external trigger regular conversion remapping */
+...
+#define GPIO_ADC0_ETRGINS_REMAP          ((uint32_t)0x00200000U | (AFIO_PCF0_ADC0_ETRGINS_REMAP >> 16))   /*!< ADC0 external trigger inserted conversion remapping(only for GD32F30X_HD devices and GD32F30X_XD devices) */
+#define GPIO_ADC0_ETRGREG_REMAP          ((uint32_t)0x00200000U | (AFIO_PCF0_ADC0_ETRGREG_REMAP >> 16))   /*!< ADC0 external trigger regular conversion remapping(only for GD32F30X_HD devices and GD32F30X_XD devices) */
+#define GPIO_ADC1_ETRGINS_REMAP          ((uint32_t)0x00200000U | (AFIO_PCF0_ADC1_ETRGINS_REMAP >> 16))   /*!< ADC1 external trigger inserted conversion remapping(only for GD32F30X_HD devices and GD32F30X_XD devices) */
+#define GPIO_ADC1_ETRGREG_REMAP          ((uint32_t)0x00200000U | (AFIO_PCF0_ADC1_ETRGREG_REMAP >> 16))   /*!< ADC1 external trigger regular conversion remapping(only for GD32F30X_HD devices and GD32F30X_XD devices) */
+ 
+V3.0.3:
+#define AFIO_PCF0_ADC0_ETRGINS_REMAP     BIT(17)             /*!< ADC 0 external trigger inserted conversion remapping */
+#define AFIO_PCF0_ADC0_ETRGROU_REMAP     BIT(18)             /*!< ADC 0 external trigger routine conversion remapping */
+#define AFIO_PCF0_ADC1_ETRGINS_REMAP     BIT(19)             /*!< ADC 1 external trigger inserted conversion remapping */
+#define AFIO_PCF0_ADC1_ETRGROU_REMAP     BIT(20)             /*!< ADC 1 external trigger routine conversion remapping */
+...
+#define GPIO_ADC0_ETRGINS_REMAP          ((uint32_t)0x00200000U | (AFIO_PCF0_ADC0_ETRGINS_REMAP >> 16))   /*!< ADC0 external trigger inserted conversion remapping(only for GD32F30X_HD devices and GD32F30X_XD devices) */
+#define GPIO_ADC0_ETRGREG_REMAP          ((uint32_t)0x00200000U | (AFIO_PCF0_ADC0_ETRGROU_REMAP >> 16))   /*!< ADC0 external trigger routine conversion remapping(only for GD32F30X_HD devices and GD32F30X_XD devices) */
+#define GPIO_ADC1_ETRGINS_REMAP          ((uint32_t)0x00200000U | (AFIO_PCF0_ADC1_ETRGINS_REMAP >> 16))   /*!< ADC1 external trigger inserted conversion remapping(only for GD32F30X_HD devices and GD32F30X_XD devices) */
+#define GPIO_ADC1_ETRGREG_REMAP          ((uint32_t)0x00200000U | (AFIO_PCF0_ADC1_ETRGROU_REMAP >> 16))   /*!< ADC1 external trigger routine conversion remapping(only for 
+GD32F30X_HD devices and GD32F30X_XD devices) */
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_gpio.c
+fix reason:
+Modify the function interface that returns a value to have only one exit
+__________________________________________________________________________________________________________________________
+
+______________________SDIO_____________________________________________________________________________________________
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/SDIO/Read_write
+fix reason:
+add condition build macro
+V3.0.2:
+none
+V3.0.3:
+   #if defined (GD32F30X_HD) || (GD32F30X_XD)
+   
+   
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/SDIO/Read_write/main.c 
+fix reason:
+Fix the issue of redirection and duplicate definition of the serial port print function
+V3.0.2:
+/* retarget the C library printf function to the USART */
+int fputc(int ch, FILE *f)
+{
+    usart_data_transmit(EVAL_COM0, (uint8_t)ch);
+    while(RESET == usart_flag_get(EVAL_COM0, USART_FLAG_TBE));
+    return ch;
+}
+V3.0.3:
+none
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_sdio.c
+fix reason:
+Modify the function interface that returns a value to have only one exit
+
+__________________________________________________________________________________________________________________________
+______________________CTC_____________________________________________________________________________________________
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CTC/CTC_gpio/gd32f30x_it.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CTC/CTC_gpio/gd32f30x_it.h
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CTC/CTC_lxtal/gd32f30x_it.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CTC/CTC_lxtal/gd32f30x_it.h
+fix reason:
+Add interrupt files
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_ctc.c
+fix reason:
+Modify the function interface that returns a value to have only one exit
+
+__________________________________________________________________________________________________________________________
+______________________DAC_____________________________________________________________________________________________
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/DAC/DAC_ADC_convert
+fix reason:
+Change all REGULAR to ROUTINE and all regular to routine in the DAC example
+V3.0.2:
+REGULAR
+V3.0.3:
+routine
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/DAC/DAC_ADC_convert/main.c
+fix reason:
+3223 DAC example DAC_ADC_convert change
+V3.0.2:
+    /* configure ADC peripheral */
+    adc_config();
+    /* configure DAC peripheral */
+    dac_config();
+V3.0.3:
+    nvic_config();
+    /* configure DAC peripheral */
+    dac_config();
+    /* configure ADC peripheral */
+    adc_config();
+
+
+
+
+__________________________________________________________________________________________________________________________
+
+______________________USB_____________________________________________________________________________________________
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBD/dev_firmware_update/src/inter_flash_if.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/dev_firmware_update/src/inter_flash_if.c
+fix reason:
+Fix the USB issue caused by the compilation of VERSION6
+V3.0.2:
+/*!
+    \brief      get the FMC bank0 state
+    \param[in]  none
+    \param[out] none
+    \retval     state of FMC, refer to fmc_state_enum
+*/
+static fmc_state_enum fmc_bank0_state_get(void)
+{
+    fmc_state_enum fmc_state = FMC_READY;
+
+    if((uint32_t)0x00U != (FMC_STAT0 & FMC_STAT0_BUSY)) {
+        fmc_state = FMC_BUSY;
+    } else {
+        if((uint32_t)0x00U != (FMC_STAT0 & FMC_STAT0_WPERR)) {
+            fmc_state = FMC_WPERR;
+        } else {
+            if((uint32_t)0x00U != (FMC_STAT0 & (FMC_STAT0_PGERR))) {
+                fmc_state = FMC_PGERR;
+            }
+        }
+    }
+    /* return the FMC state */
+    return fmc_state;
+}
+
+/*!
+    \brief      check whether FMC bank0 is ready or not
+    \param[in]  timeout: count of loop
+    \param[out] none
+    \retval     state of FMC, refer to fmc_state_enum
+*/
+static fmc_state_enum fmc_bank0_ready_wait(uint32_t timeout)
+{
+    fmc_state_enum fmc_state = FMC_BUSY;
+
+    /* wait for FMC ready */
+    do {
+        /* get FMC state */
+        fmc_state = fmc_bank0_state_get();
+        timeout--;
+    } while((FMC_BUSY == fmc_state) && (0x00U != timeout));
+
+    if(FMC_BUSY == fmc_state) {
+        fmc_state = FMC_TOERR;
+    }
+    /* return the FMC state */
+    return fmc_state;
+}
+V3.0.3:
+delete
+
+
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/dev_firmware_update/inc/usb_conf.h
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/audio/inc/usb_conf.h
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/cdc_acm/inc/usb_conf.h
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/composite_dev_hid_printer/inc/usb_conf.h
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/custom_hid/inc/usb_conf.h
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/in_application_program_hid/inc/usb_conf.h
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/msc_cdrom/inc/usb_conf.h
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/msc_udisk/inc/usb_conf.h
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/standard_hid_keyboard/inc/usb_conf.h
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/usb_printer/inc/usb_conf.h
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Host/usb_host_hid_keyboard_mouse/inc/usb_conf.h
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Host/usb_host_msc_udisk/inc/usb_conf.h
+fix reason:
+Fix the USB issue caused by the compilation of VERSION6
+V3.0.2:
+        #define __packed __attribute__ ((__packed__))
+V3.0.3:
+        #define __packed __unaligned
+
+__________________________________________________________________________________________________________________________
+
+______________________SPI_____________________________________________________________________________________________
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/SPI/I2S_master_transmit_slave_receive_dma/main.c
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Include/gd32f30x_spi.h
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_spi.c
+fix reason:
+The I2S parameter macro is modified from I2S_STD_PHILLIPS to I2S_STD_PHILIPS
+V3.0.2:
+I2S_STD_PHILLIPS
+V3.0.3:
+I2S_STD_PHILIPS
+__________________________________________________________________________________________________________________________
+
+______________________PMU_____________________________________________________________________________________________
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/PMU/Deepsleep_wakeup_RTC/main.c
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/PMU/Deepsleep_wakeup_exti/main.c
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/PMU/Standby_wakeup_RTC/main.c
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/PMU/Standby_wakeup_pin/main.c
+fix reason:
+PMU routine frequency switching patch added
+V3.0.2:
+
+V3.0.3:
+add
+/* software delay to prevent the impact of Vcore fluctuations.
+   It is strongly recommended to include it to avoid issues caused by self-removal. */
+static void _soft_delay_(uint32_t time)
+{
+    __IO uint32_t i;
+    for(i=0; i<time*10; i++){
+    }
+}
+...
+        /* The following is to prevent Vcore fluctuations caused by frequency switching. 
+           It is strongly recommended to include it to avoid issues caused by self-removal. */
+        _soft_delay_(0x50);
+        rcu_ahb_clock_config(RCU_AHB_CKSYS_DIV2);
+        _soft_delay_(0x50);
+        rcu_ahb_clock_config(RCU_AHB_CKSYS_DIV4);
+        _soft_delay_(0x50);
+        rcu_ahb_clock_config(RCU_AHB_CKSYS_DIV8);
+        _soft_delay_(0x50);
+        rcu_ahb_clock_config(RCU_AHB_CKSYS_DIV16);
+        _soft_delay_(0x50);
+        rcu_system_clock_source_config(RCU_CKSYSSRC_IRC8M);
+        _soft_delay_(200);
+        rcu_ahb_clock_config(RCU_AHB_CKSYS_DIV1);
+		
+		
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_pmu.c	
+fix reason:
+Modify the function interface that returns a value to have only one exit
+__________________________________________________________________________________________________________________________
+______________________EXMC_____________________________________________________________________________________________
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_exmc.c
+fix reason:
+Modify the function interface that returns a value to have only one exit
+__________________________________________________________________________________________________________________________
+______________________MISC_____________________________________________________________________________________________
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_misc.c
+fix reason:
+update nvic_irq_enable implement
+V3.0.2:
+    uint32_t temp_priority = 0x00U, temp_pre = 0x00U, temp_sub = 0x00U;
+    /* use the priority group value to get the temp_pre and the temp_sub */
+    if(((SCB->AIRCR) & (uint32_t)0x700U)==NVIC_PRIGROUP_PRE0_SUB4){
+        temp_pre=0U;
+        temp_sub=0x4U;
+    }else if(((SCB->AIRCR) & (uint32_t)0x700U)==NVIC_PRIGROUP_PRE1_SUB3){
+        temp_pre=1U;
+        temp_sub=0x3U;
+    }else if(((SCB->AIRCR) & (uint32_t)0x700U)==NVIC_PRIGROUP_PRE2_SUB2){
+        temp_pre=2U;
+        temp_sub=0x2U;
+    }else if(((SCB->AIRCR) & (uint32_t)0x700U)==NVIC_PRIGROUP_PRE3_SUB1){
+        temp_pre=3U;
+        temp_sub=0x1U;
+    }else if(((SCB->AIRCR) & (uint32_t)0x700U)==NVIC_PRIGROUP_PRE4_SUB0){
+        temp_pre=4U;
+        temp_sub=0x0U;
+    }else{
+        nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
+        temp_pre=2U;
+        temp_sub=0x2U;
+    }
+    /* get the temp_priority to fill the NVIC->IP register */
+    temp_priority = (uint32_t)nvic_irq_pre_priority << (0x4U - temp_pre);
+    temp_priority |= nvic_irq_sub_priority &(0x0FU >> (0x4U - temp_sub));
+    temp_priority = temp_priority << 0x04U;
+    NVIC->IP[nvic_irq] = (uint8_t)temp_priority;
+    /* enable the selected IRQ */
+    NVIC->ISER[nvic_irq >> 0x05U] = (uint32_t)0x01U << (nvic_irq & (uint8_t)0x1FU);
+V3.0.3:
+    uint32_t nvic_prigroup, nvic_priority;
+
+    /* check current priority group */
+    switch(SCB->AIRCR & SCB_AIRCR_PRIGROUP_Msk) {
+    case NVIC_PRIGROUP_PRE0_SUB4:
+    case NVIC_PRIGROUP_PRE1_SUB3:
+    case NVIC_PRIGROUP_PRE2_SUB2:
+    case NVIC_PRIGROUP_PRE3_SUB1:
+    case NVIC_PRIGROUP_PRE4_SUB0:
+        break;
+    default:
+        nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
+        break;
+    }
+
+    /* get the priority group value */
+    nvic_prigroup = NVIC_GetPriorityGrouping();
+
+    /* encoding the pre-emption, subpriority priority */
+    nvic_priority = NVIC_EncodePriority(nvic_prigroup, (uint32_t)nvic_irq_pre_priority, (uint32_t)nvic_irq_sub_priority);
+    /* set priority */
+    NVIC_SetPriority(nvic_irq, nvic_priority);
+
+    /* enable the selected IRQ */
+    NVIC_EnableIRQ(nvic_irq);
+	
+	
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Include/gd32f30x_misc.h
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_misc.c
+fix reason:
+add mpu related functions
+V3.0.2:
+
+V3.0.3:
+add mpu related functions
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_misc.c
+fix reason:
+Format Adjustment to support miscra rule 14.7
+V3.0.2:
+    NVIC->ICER[nvic_irq >> 0x05] = (uint32_t)0x01 << (nvic_irq & (uint8_t)0x1F);
+V3.0.3:
+    NVIC_DisableIRQ(nvic_irq);
+	
+	
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Include/gd32f30x_misc.h
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_misc.c
+fix reason:
+Fix MISC code spelling error
+V3.0.2:
+void nvic_vector_table_set(uint32_t nvic_vict_tab, uint32_t offset)
+{
+    SCB->VTOR = nvic_vict_tab | (offset & NVIC_VECTTAB_OFFSET_MASK);
+    __DSB();
+}
+V3.0.3:
+void nvic_vector_table_set(uint32_t nvic_vect_tab, uint32_t offset)
+{
+    SCB->VTOR = nvic_vect_tab | (offset & NVIC_VECTTAB_OFFSET_MASK);
+    __DSB();
+}	
+__________________________________________________________________________________________________________________________
+
+______________________CRC_____________________________________________________________________________________________
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_crc.c
+fix reason:
+MISRAC 2004 rule 17.4 not fit change
+V3.0.2:
+    uint32_t index;
+    for(index = 0U; index < size; index++){
+        CRC_DATA = *(array+index);
+V3.0.3:
+    uint32_t index;
+    uint32_t data = (uint32_t)array;
+    
+    for(index = 0U; index < size; index++){
+        CRC_DATA = *(uint32_t *)data;
+        data += 4U;
+    }
+    return (CRC_DATA);
+__________________________________________________________________________________________________________________________
+
+______________________CAN_____________________________________________________________________________________________
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Include/gd32f30x_can.h
+fix reason:
+CAN filter base address modify;(CAN filter 23 data 0 register/ CAN filter 17 data 1 register)
+V3.0.2:
+#define CAN_F23DATA0(canx)                 REG32((canx) + 0x000003F8U)        /*!< CAN filter 23 data 0 register */
+...
+#define CAN_F17DATA1(canx)                 REG32((canx) + 0x0000024CU)        /*!< CAN filter 17 data 1 register */
+
+V3.0.3:
+#define CAN_F23DATA0(canx)                 REG32((canx) + 0x000002F8U)        /*!< CAN filter 23 data 0 register */
+...
+#define CAN_F17DATA1(canx)                 REG32((canx) + 0x000002CCU)        /*!< CAN filter 17 data 1 register */
+
+
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_among_CANs/gd32f30x_it.c
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_among_CANs/main.c
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_Loopback/gd32f30x_it.c
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_Loopback/main.c
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_among_Devices/gd32f30x_it.c
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_among_Devices/main.c
+fix reason:
+Add macro differentiation to CAN1 
+V3.0.2:
+
+V3.0.3:
+add
+#ifdef GD32F30X_CL
+...
+#endif /* GD32F30X_CL */
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_can.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Include/gd32f30x_can.h
+fix reason:
+Determine whether the CAN controller has three mailboxes transmitting simultaneously, and whether the mailbox to be aborted is the last one. If such an operation is performed, the code will exit and notify the customer that the abort operation has failed.
+V3.0.2:
+void can_transmission_stop(uint32_t can_periph, uint8_t mailbox_number)
+{
+    if(CAN_MAILBOX0 == mailbox_number) {
+        CAN_TSTAT(can_periph) |= CAN_TSTAT_MST0;
+        while(CAN_TSTAT_MST0 == (CAN_TSTAT(can_periph) & CAN_TSTAT_MST0)) {
+        }
+    } else if(CAN_MAILBOX1 == mailbox_number) {
+        CAN_TSTAT(can_periph) |= CAN_TSTAT_MST1;
+        while(CAN_TSTAT_MST1 == (CAN_TSTAT(can_periph) & CAN_TSTAT_MST1)) {
+        }
+    } else if(CAN_MAILBOX2 == mailbox_number) {
+        CAN_TSTAT(can_periph) |= CAN_TSTAT_MST2;
+        while(CAN_TSTAT_MST2 == (CAN_TSTAT(can_periph) & CAN_TSTAT_MST2)) {
+        }
+    } else {
+        /* illegal parameters */
+    }
+}
+V3.0.3:
+ErrStatus can_transmission_stop(uint32_t can_periph, uint8_t mailbox_number)
+{
+    ErrStatus reval = SUCCESS;
+    /* timeout for CAN_TSTAT_MSTx bits */
+    uint32_t timeout = CAN_TIMEOUT;
+    uint32_t reg_value0 = 0U;
+    uint32_t reg_value1 = 0U;
+
+    /* get the status of transmit FIFO order */
+    reg_value0 = CAN_CTL(can_periph) & CAN_CTL_TFO;
+
+    if(CAN_MAILBOX0 == mailbox_number) {
+        reg_value1 = CAN_TSTAT(can_periph) & (CAN_TSTAT_TMLS0 | CAN_ALL_MAILBOX_EMPTY);
+        if((CAN_CTL_TFO == reg_value0) && (CAN_TSTAT_TMLS0 == reg_value1)){
+            reval = ERROR;
+        } else {
+            CAN_TSTAT(can_periph) |= CAN_TSTAT_MST0;
+            while((CAN_TSTAT_MST0 == (CAN_TSTAT(can_periph) & CAN_TSTAT_MST0)) && (0U != timeout)) {
+                timeout--;
+            }
+            if(CAN_TSTAT_MST0 == (CAN_TSTAT(can_periph) & CAN_TSTAT_MST0)){
+                reval = ERROR;
+            }
+        }
+    } else if(CAN_MAILBOX1 == mailbox_number) {
+        reg_value1 = CAN_TSTAT(can_periph) & (CAN_TSTAT_TMLS1 | CAN_ALL_MAILBOX_EMPTY);
+        if((CAN_CTL_TFO == reg_value0) && (CAN_TSTAT_TMLS1 == reg_value1)){
+            reval = ERROR;
+        }else{
+            CAN_TSTAT(can_periph) |= CAN_TSTAT_MST1;
+            while((CAN_TSTAT_MST1 == (CAN_TSTAT(can_periph) & CAN_TSTAT_MST1)) && (0U != timeout)) {
+                timeout--;
+            }
+            if(CAN_TSTAT_MST1 == (CAN_TSTAT(can_periph) & CAN_TSTAT_MST1)){
+                reval = ERROR;
+            }
+        }
+        
+    } else if(CAN_MAILBOX2 == mailbox_number) {
+        reg_value1 = CAN_TSTAT(can_periph) & (CAN_TSTAT_TMLS2 | CAN_ALL_MAILBOX_EMPTY);
+        if((CAN_CTL_TFO == reg_value0) && (CAN_TSTAT_TMLS2 == reg_value1)){
+            reval = ERROR;
+        }else{
+            CAN_TSTAT(can_periph) |= CAN_TSTAT_MST2;
+            while((CAN_TSTAT_MST2 == (CAN_TSTAT(can_periph) & CAN_TSTAT_MST2)) && (0U != timeout)) {
+                timeout--;
+            }
+            if(CAN_TSTAT_MST2 == (CAN_TSTAT(can_periph) & CAN_TSTAT_MST2)){
+                reval = ERROR;
+            }
+        }
+    } else {
+        /* illegal parameters */
+    }
+    return reval;
+}
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_among_CANs/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_among_Devices/main.c
+fix reason:
+Fix the issue of redirection and duplicate definition of the serial port print function
+V3.0.2:
+/* retarget the C library printf function to the USART */
+int fputc(int ch, FILE *f)
+{
+    usart_data_transmit(EVAL_COM0, (uint8_t)ch);
+    while(RESET == usart_flag_get(EVAL_COM0, USART_FLAG_TBE));
+    return ch;
+}
+V3.0.3:
+none
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_can.c
+fix reason:
+Modify the function interface that returns a value to have only one exit
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_Loopback/gd32f30x_it.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_Loopback/gd32f30x_it.h
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_among_CANs/gd32f30x_it.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_among_CANs/gd32f30x_it.h
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_among_Devices/gd32f30x_it.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_among_Devices/gd32f30x_it.h
+fix reason:
+add void SysTick_Handler(void);
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_Loopback/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_among_CANs/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/CAN/communication_among_Devices/main.c
+fix reason:
+Correct the spelling errors
+V3.0.2:
+    can_trasnmit_message_struct
+V3.0.3:
+    can_transmit_message_struct
+__________________________________________________________________________________________________________________________
+
+______________________FMC_____________________________________________________________________________________________
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/FMC/Erase_Program/main.c
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/FMC/Write_Protection/main.c
+fix reason:
+To erase or write flash or option bytes, it is necessary to clear the exception flag first before proceeding with the operation
+V3.0.2:
+
+V3.0.3:
+add
+    /* clear all pending flags */
+    fmc_flag_clear(FMC_FLAG_BANK0_END);
+    fmc_flag_clear(FMC_FLAG_BANK0_WPERR);
+    fmc_flag_clear(FMC_FLAG_BANK0_PGERR);
+	
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_fmc.c
+fix reason:
+Modify the function interface that returns a value to have only one exit
+_______________________________________________________________________________________________________________________
+
+______________________BKP_____________________________________________________________________________________________
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/BKP/Backup_data/main.c
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/BKP/Tamper/main.c
+fix reason:
+If the RCU_BDCTL_BKPRST position reads BKP_DATAx at a certain time, it will cause the MCU to crash or go out of control. Before accessing the content of the backup domain, it is necessary to first determine whether the RCU_BDCTL_BKPRST bit has been reset to zero. If it is set, it should be cleared.
+V3.0.2:
+    pmu_backup_write_enable();
+    /* clear the bit flag of tamper event */
+    bkp_flag_clear(BKP_FLAG_TAMPER);
+V3.0.3:
+    pmu_backup_write_enable();
+    /* confirm RCU_BDCTL_BKPRST bit is reset */
+    if(RESET != (RCU_BDCTL & RCU_BDCTL_BKPRST)){
+        rcu_bkp_reset_disable();
+    }
+    /* clear the bit flag of tamper event */
+    bkp_flag_clear(BKP_FLAG_TAMPER);
+	
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_bkp.c
+fix reason:	
+fix MISR-C 14.7
+Modify the function interface that returns a value to have only one exit
+V3.0.2:
+    ctl &= ~(uint16_t)BKP_OCTL_RCCV;
+V3.0.3:
+    ctl &= (uint16_t)~BKP_OCTL_RCCV;
+	
+
+__________________________________________________________________________________________________________________________
+
+______________________RCU_____________________________________________________________________________________________
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/RCU/System_clock_switch/main.c
+fix reason:
+Add macro configuration to adapt to XD and HD models
+V3.0.2:
+
+V3.0.3:
+add
+#if (defined(GD32F30X_HD) || defined(GD32F30X_XD))
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_rcu.c
+fix reason:
+Modify the function interface that returns a value to have only one exit
+
+__________________________________________________________________________________________________________________________
+
+______________________RCU_____________________________________________________________________________________________
+GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/RCU/System_clock_switch/main.c
+fix reason:
+Add macro configuration to adapt to XD and HD models
+V3.0.2:
+
+V3.0.3:
+add
+#if (defined(GD32F30X_HD) || defined(GD32F30X_XD))
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/RCU/Ckout_pin_clock_output/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/RCU/Reset_source_detect/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/RCU/System_clock_switch/main.c
+fix reason:
+Fix the issue of redirection and duplicate definition of the serial port print function
+V3.0.2:
+/* retarget the C library printf function to the USART */
+int fputc(int ch, FILE *f)
+{
+    usart_data_transmit(EVAL_COM0, (uint8_t)ch);
+    while(RESET == usart_flag_get(EVAL_COM0, USART_FLAG_TBE));
+    return ch;
+}
+V3.0.3:
+none
+__________________________________________________________________________________________________________________________
+
+______________________FWDGT_____________________________________________________________________________________________
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/FWDGT/FWDGT_key/main.c
+fix reason:
+Add macro configuration to adapt to XD and HD models
+V3.0.2:
+    /* After 1.6 seconds to generate a reset */
+    fwdgt_enable();
+V3.0.3:
+none
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_fwdgt.c
+fix reason:
+The original code was "wait for PUD and RUD before writing PSC and RLD", but it was changed to "enable FWDGT first, then write PSC and RLD, then wait for RUD and PUD to clear".
+eg:
+V3.0.2:
+    uint32_t timeout = FWDGT_PSC_TIMEOUT;
+    uint32_t flag_status = RESET;
+
+    /* enable write access to FWDGT_PSC */
+    FWDGT_CTL = FWDGT_WRITEACCESS_ENABLE;
+
+    /* wait until the PUD flag to be reset */
+    do {
+        flag_status = FWDGT_STAT & FWDGT_STAT_PUD;
+    } while((--timeout > 0U) && ((uint32_t)RESET != flag_status));
+
+    if((uint32_t)RESET != flag_status) {
+        return ERROR;
+    }
+
+    /* configure FWDGT */
+    FWDGT_PSC = (uint32_t)prescaler_value;
+
+    return SUCCESS;
+V3.0.3:
+    uint32_t timeout = FWDGT_PSC_TIMEOUT;
+    uint32_t flag_status;
+    ErrStatus status = SUCCESS;
+
+    /* enable write access to FWDGT_PSC */
+    FWDGT_CTL = FWDGT_WRITEACCESS_ENABLE;
+
+    /* configure FWDGT_PSC */
+    FWDGT_PSC = (uint32_t)prescaler_value;
+
+    /* wait until the PUD flag to be reset */
+    do {
+        flag_status = FWDGT_STAT & FWDGT_STAT_PUD;
+    } while((--timeout > 0U) && (0U != flag_status));
+
+    if(0U != flag_status) {
+        status = ERROR;
+    }
+
+    return status;
+__________________________________________________________________________________________________________________________
+
+______________________EXTI_____________________________________________________________________________________________
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_exti.c
+fix reason:
+Modify the function interface that returns a value to have only one exit
+
+__________________________________________________________________________________________________________________________
+
+______________________DMA_____________________________________________________________________________________________
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/DMA/Ram_to_usart/gd32f30x_it.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/DMA/Ram_to_usart/main.c
+fix reason:
+Solve the problem that GCC fails to pass the high optimization level
+V3.0.2:
+FlagStatus g_transfer_complete = RESET;
+V3.0.3:
+__IO FlagStatus g_transfer_complete = RESET;
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_dma.c
+fix reason:
+Modify the function interface that returns a value to have only one exit
+__________________________________________________________________________________________________________________________
+______________________ENET_____________________________________________________________________________________________
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ENET/
+fix reason:
+upgrade lwip version to 2.2.1
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ENET/Telnet/lwip-2.2.1/port/GD32F30x/Basic/ethernetif.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_enet.c
+fix reason:
+Modify the function interface that returns a value to have only one exit
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/ENET/Telnet/src/gd32f30x_enet_eval.c
+fix reason:
+fix misra rule 14.7
+V3.0.2:
+#ifdef SELECT_DESCRIPTORS_ENHANCED_MODE
+V3.0.3:
+#if SELECT_DESCRIPTORS_ENHANCED_MODE
+__________________________________________________________________________________________________________________________
+______________________I2C_____________________________________________________________________________________________
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_i2c.c
+fix reason:
+Modify the function interface that returns a value to have only one exit
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/I2C/I2C_EEPROM/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/I2C/I2C_EEPROM_dma/main.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/I2C/I2C_EEPROM_interrput/main.c
+fix reason:
+Fix the issue of redirection and duplicate definition of the serial port print function
+V3.0.2:
+/* retarget the C library printf function to the USART */
+int fputc(int ch, FILE *f)
+{
+    usart_data_transmit(EVAL_COM0, (uint8_t)ch);
+    while(RESET == usart_flag_get(EVAL_COM0, USART_FLAG_TBE));
+    return ch;
+}
+V3.0.3:
+none
+
+__________________________________________________________________________________________________________________________
+______________________SPI_____________________________________________________________________________________________
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/SPI/
+fix reason:
+The board hardware pin limitation was evaluated and SPI1 was modified to SPI2 and the host hardware NSS was modified to software NSS
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_spi.c
+fix reason:
+Modify the function interface that returns a value to have only one exit
+
+__________________________________________________________________________________________________________________________
+
+______________________RTC_____________________________________________________________________________________________
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/RTC/Calendar_demo/main.c
+fix reason:
+Fix the issue of redirection and duplicate definition of the serial port print function
+V3.0.2:
+/* retarget the C library printf function to the USART */
+int fputc(int ch, FILE *f)
+{
+    usart_data_transmit(EVAL_COM0, (uint8_t)ch);
+    while(RESET == usart_flag_get(EVAL_COM0, USART_FLAG_TBE));
+    return ch;
+}
+V3.0.3:
+none
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral/Source/gd32f30x_rtc.c
+fix reason:
+Modify the function interface that returns a value to have only one exit
+
+__________________________________________________________________________________________________________________________
+
+______________________USBFS_____________________________________________________________________________________________
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_usbfs_library
+fix reason:
+Redefine the __packed keyword and simplify the code
+Resolve the redefinition error of the fputc function during compilation in IAR
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Host/usb_host_msc_udisk/src/usbh_usr.c
+fix reason:
+Fix the mismatch between the button/key logic and the printed messages in the F307 Host MSC example.
+V3.0.2:
+lcd_vertical_string_display(LCD_HINT_LINE2, 0U, (uint8_t *)"Press User Key to continue");
+V3.0.3:
+lcd_vertical_string_display(LCD_HINT_LINE2, 0U, (uint8_t *)"Press Tamper Key to continue");
+
+
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/in_application_program_hid/GD32EBuilder_project/.cproject
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/in_application_program_hid/GD32EBuilder_project/.settings/com.gigadevice.utils.prefs
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/in_application_program_hid/MDK-ARM/iap_hid.uvopt
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/in_application_program_hid/MDK-ARM/iap_hid.uvprojx
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Examples/USBFS/USB_Device/in_application_program_hid/src/flash_operation.c
+/GD32F30x_Firmware_Library/GD32F30x_Firmware_Library/Firmware/GD32F30x_usbfs_library/device/class/iap/Source/usb_iap_core.c
+fix reason:
+Resolve the IAP download bug.
+
+
+__________________________________________________________________________________________________________________________
+
+
+
