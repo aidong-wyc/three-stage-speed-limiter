@@ -11,5 +11,6 @@
 *.bak
 *.tmp
 *.log
+~$*.docx
 Thumbs.db
 Desktop.ini
